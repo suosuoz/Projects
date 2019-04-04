@@ -5,10 +5,6 @@ date:
 output: html_document
 ---
 
-_This is your first homework assignment. It is an R Markdown document. You will modify this file with your answers and responses. Please preserve all text that is italicized. This will signal to the course reader that the italicized text is part of the homework prompt and is not to be graded. Everything else can (probably should) be modified to answer the question. If you must emphasize text in your answers, please use boldface, rather than italics._
-
-_This homework assignment is a bit more conceptual than future assignments. It does, however, highlight some important things to understand about how R stores and handles values._
-
 1. _Working with vectors_
     a. _Create a vector of the positive odd integers less than 40_
     b. _remove the values greater than 20 and less than 30_
@@ -16,7 +12,7 @@ _This homework assignment is a bit more conceptual than future assignments. It d
 
 ```{r}
 #1a
-seq(1, 40, by = 2)   # 1a been done to get you started
+seq(1, 40, by = 2)  
 #1b
 b1 <- seq(1, 40, by=2)
 bb1 <- b1[b1 <20 | b1 > 30]
@@ -187,80 +183,4 @@ print(df)
 
 - The difference between the two is that <- is useful everywhere in the environment.  <<- on the other hand is primarily used in functions and can override <-.
 
-17. _Some R Vocabulary_
-
-To be proficient in R Programming, you need to have a good working vocabulary. You should familiarize yourself with all of the following functions. You don't have to write anything or 'do' anything for this exercise, other than do the appropriate reading to understand the usage of these functions.
-
-Please take some time to look up the help files for each of the following functions or operators. I strongly encourage you to read through and try out some of the examples at the bottom of the help pages to understand their usage. This activity should take you a couple hours to complete. Credit to Hadley Wickham for compiling an excellent list, from which I have drawn a few functions. His complete list can be found here:_ <http://adv-r.had.co.nz/Vocabulary.html>
-
-```{r, eval=FALSE}
-str
-
-match, %in%
-subset
-with
-
-# comparison
-all.equal, identical
-==, !=, >, >=, <, <= # help(comparison)
-is.na
-any
-
-
-# basic math
-*, +, -, /, ^, %%, %/% # help(arithmetic)
-abs, sign
-ceiling, floor, round, trunc, signif # help(Round)
-max, min, prod, sum
-cummax, cummin, cumprod, cumsum
-diff
-
-# Logical & sets 
-&, |, !, xor # help(Logic)
-all, any
-intersect, union, setdiff, setequal
-which
-
-# Vectors and matrices
-c, matrix
-# automatic coercion rules character > numeric > logical
-length, dim, ncol, nrow
-cbind, rbind
-names, colnames, rownames
-t
-diag
-as.matrix, data.matrix
-
-# Making vectors 
-c
-rep
-seq
-rev
-sample
-(is/as).(character/numeric/logical/...)
-
-# Lists & data.frames 
-list, unlist
-data.frame
-
-# Factors 
-factor, levels, nlevels
-reorder, relevel
-
-# Array manipulation
-array
-dim
-dimnames
-
-# Ordering
-merge
-order
-rank
-sort
-
-# inputs / outputs
-cat
-print
-paste
-readline
 ```
