@@ -1,0 +1,266 @@
+---
+title: "Stats 102A (Computational Statistics) - Homework 1 - Data Structures"
+author: "Matthew Matsuo"
+date: 
+output: html_document
+---
+
+_This is your first homework assignment. It is an R Markdown document. You will modify this file with your answers and responses. Please preserve all text that is italicized. This will signal to the course reader that the italicized text is part of the homework prompt and is not to be graded. Everything else can (probably should) be modified to answer the question. If you must emphasize text in your answers, please use boldface, rather than italics._
+
+_This homework assignment is a bit more conceptual than future assignments. It does, however, highlight some important things to understand about how R stores and handles values._
+
+1. _Working with vectors_
+    a. _Create a vector of the positive odd integers less than 40_
+    b. _remove the values greater than 20 and less than 30_
+    c. _Find the variance of the remaining set of values_
+
+```{r}
+#1a
+seq(1, 40, by = 2)   # 1a been done to get you started
+#1b
+b1 <- seq(1, 40, by=2)
+bb1 <- b1[b1 <20 | b1 > 30]
+print(bb1)
+#1c
+var(bb1)
+```
+
+2. _Coercion: For each of the following, explain what type of output you will receive and why R is producing that output._
+    a. `c(0, TRUE)`
+    b. `c("F", F)`
+    c. `c(list(1), "b")`
+    d. `c(FALSE, 1L)`
+
+- Answer:
+    a. The output is numeric since numeric is higher in the order than logical operators.  
+    b. The output is character since character is higher in the order than logical operators.  
+    c. The output is a list with 2 different inputs, a number and a character.  
+    d. The output is numeric as False is coerced to a 0.   
+
+3. _Answer the following:_
+a. _What is the difference between NULL, NA, and NaN?_
+    - The difference between the three is that NULL occurs when the object or position is empty. There is no value assigned to it.  NA means that there is a missing value where there should be a value and NaN arises when the output is not a number such as when you try to perform 0/0.  
+b. _Here's an integer vector. What happens if you insert NULL into the 4th position of the vector?_
+    - Inserting a NULL into the vector would remove the 4th position.  The output will simply skip over this position and move over it normally.
+```{r}
+a <- c(1:3,NULL,5:10)
+print(a)
+```
+    
+c. _What happens if you insert NA into the 4th position of the vector?_  
+    NA prints in the 4th position.
+```{r}
+a <- c(1:3,NA,5:10)
+print(a)
+```
+
+d. _What happens if you insert NaN into the 4th position of the vector? Don't forget to check the type._  
+    Inserting NaN into the 4th position changes the value from 4 to NaN, but also changes the type from integer to double.
+
+4. _What is the difference between logical(0) and NULL? Write a command (other than `logical(0)`) that will produce logical(0) as the output. Write a command (other than `NULL`) that will produce NULL as the output._
+
+- The difference between logical(0) and NULL is that the first is logical. logical(0) also is a vector with length 0 while NULL has no length. 
+
+```{r}
+fourA <- c(FALSE)
+fourA[-1]
+four <- data.frame(1,2,3)
+four$x3
+```
+
+
+5. _A vector `c(TRUE, FALSE)` is a logical vector. Other than `TRUE` or `FALSE`, what can you insert into the vector so that it increases to a length of 3 and remains a logical vector and does not get coerced into another class?_
+
+- add NA to keep it a logical vector
+
+```{r}
+vec <- c(TRUE, FALSE,NA)
+print(vec)
+```
+
+
+6. _Why do you need to use `unlist()` to convert a list to an atomic vector? Why doesn't `as.vector()` work?_
+
+- unlist() is needed because it specifically converts lists to vectors while keeping its atomic components. On the other hand, as.vector() will coerce whatever is convenient and will remove atomic components when it is coerced.
+
+7. _What are the lengths of the following lists? Use bracket notation to subset them to the letters "h" and "i". Be sure to print the result so it shows the subset._
+
+```{r}
+l1 <- list(letters[1:5], letters[3:9] , letters[4:7])
+l1
+print(length(l1))
+l1[[2]][6]
+l1[[2]][7]
+
+l2 <- list( c(letters[1:5], letters[3:9]), letters[4:7] )
+l2
+print(length(l2))
+l2[[1]][11]
+l2[[1]][12]
+```
+
+8. _What will `c(4:7) * c(2:4)` produce? Briefly, why?_
+
+- It will produce '8 15 24 14'. The first vector is of length 4 and the second vector is of length 3. The first 3 calculations go as normal, but for the last calculation, the second vector needs to be recycled. The second vector then goes back to the beginning to 2 so that the calculation is 7*2. 
+
+9. _Take a look at the following code chunks. What are some of the differences between `cat()` and `print()`?_
+
+```{r}
+cat(5 + 6)
+print(5 + 6)
+```
+    
+```{r}
+x8 <- cat(5 + 6)
+y8 <- print(5 + 6)
+x8
+y8
+```
+
+```{r, error = TRUE}
+cat(letters[1:3], letters[24:26])
+print(letters[1:3], letters[24:26]) # Why are we getting the following error?
+# Error in print.default(letters[1:3], letters[24:26]) : invalid 'digits' argument
+cat(l1)
+print(l1)
+```
+    One of the major differences between "cat()" and "print()" is that cat can only work with simple objects and  does not store its output while print returns a string. This is shown in the first and second code blocks as cat can print in the console but cannot save its output into a variable. The other difference that is shown in the third block is that print can only print one argument's worth of information in a single command while cat can do multiple. 
+
+10. _What happens to a factor when you modify its levels?_
+
+```{r}
+f1 <- factor(c("A","A","B","C","D","A","C"))
+f1
+levels(f1) <- rev(levels(f1))
+f1
+```
+
+- Factors are changed when its levels are modified. In this way, a factor can be assigned a number and can be easily modified in this way. In this example, the assigned values of the levels from 1 to 4 are reversed. The levels then affect the factors and their values are changed to reflect the new levels.
+
+11. _How do f2 and f3 differ from the unmodified f1?_
+
+```{r}
+f1 <- factor(c("A","A","B","C","D","A","C"))
+f1
+f2 <- factor(rev(c("A","A","B","C","D","A","C")))
+f2
+f3 <- factor(c("A","A","B","C","D","A","C"), levels = rev(c("A","B","C","D")))
+f3
+```
+
+- f2 differs from f1 in that the vector is in reverse order. The levels are unaffected in this case. f3 differs from f1 because f3's levels are reversed. Unlike before, the actual factors are unchanged, only the order of the levels they are contained in.
+
+12. _I have created matrix AA, a 10 x 10 matrix with the numbers 1 through 100. Sum all the even rows of the second column of the matrix. Do this in one line of code._
+
+```{r}
+AA <- matrix(1:100, nrow=10)
+AA
+sum(AA[seq(2,10,by=2),2])
+```
+
+13. _What attributes does a data frame possess?_
+
+- A data frame hasa 3 attributes: names, row.names, and class.
+
+14. _What does as.matrix() do when applied to a data frame with columns of different types? Create a simple data.frame with two columns: one numeric and one string. Use as.matrix and show the results._
+
+- The function as.matrix() coerces values so that only one type exists in the matrix. In this example, the numeric values are coerced into strings.
+
+```{r}
+ace <- data.frame(x=1:3,y=c("one","two","three"))
+ace
+as.matrix(ace)
+```
+
+
+15. _Can you have a data frame with 0 rows? What about 0 columns? If it is possible, write some code to create such a data.frame._
+
+- A data frame can exist with 0 rows and/or 0 columns.
+
+```{r}
+df <- data.frame()
+print(df)
+```
+
+
+16. _What is the difference between the assignment operators `<-` and `<<-`? Look up help(assignOps)_
+
+- The difference between the two is that <- is useful everywhere in the environment.  <<- on the other hand is primarily used in functions and can override <-.
+
+17. _Some R Vocabulary_
+
+To be proficient in R Programming, you need to have a good working vocabulary. You should familiarize yourself with all of the following functions. You don't have to write anything or 'do' anything for this exercise, other than do the appropriate reading to understand the usage of these functions.
+
+Please take some time to look up the help files for each of the following functions or operators. I strongly encourage you to read through and try out some of the examples at the bottom of the help pages to understand their usage. This activity should take you a couple hours to complete. Credit to Hadley Wickham for compiling an excellent list, from which I have drawn a few functions. His complete list can be found here:_ <http://adv-r.had.co.nz/Vocabulary.html>
+
+```{r, eval=FALSE}
+str
+
+match, %in%
+subset
+with
+
+# comparison
+all.equal, identical
+==, !=, >, >=, <, <= # help(comparison)
+is.na
+any
+
+
+# basic math
+*, +, -, /, ^, %%, %/% # help(arithmetic)
+abs, sign
+ceiling, floor, round, trunc, signif # help(Round)
+max, min, prod, sum
+cummax, cummin, cumprod, cumsum
+diff
+
+# Logical & sets 
+&, |, !, xor # help(Logic)
+all, any
+intersect, union, setdiff, setequal
+which
+
+# Vectors and matrices
+c, matrix
+# automatic coercion rules character > numeric > logical
+length, dim, ncol, nrow
+cbind, rbind
+names, colnames, rownames
+t
+diag
+as.matrix, data.matrix
+
+# Making vectors 
+c
+rep
+seq
+rev
+sample
+(is/as).(character/numeric/logical/...)
+
+# Lists & data.frames 
+list, unlist
+data.frame
+
+# Factors 
+factor, levels, nlevels
+reorder, relevel
+
+# Array manipulation
+array
+dim
+dimnames
+
+# Ordering
+merge
+order
+rank
+sort
+
+# inputs / outputs
+cat
+print
+paste
+readline
+```
