@@ -1,0 +1,200 @@
+triples <- list(c(1,2,3),c(4,5,6),c(7,8,9),c(1,4,7),c(2,5,8),c(3,6,9),c(1,5,9),c(3,5,7))
+state <- as.character(1:9)
+winner <- FALSE
+z <- FALSE
+
+play <- function(){
+  winner <- FALSE
+  who <- 1
+  a <- readline("How Many human players? 1 or 2: ")
+  if(a == 1){
+    b <- readline("Do you want to play first (be x) or play second (be o): ")
+    if(b == 1){
+      display(state)
+      while(winner == FALSE){
+        #Human = x, Computer = o
+        who <- 1
+        state <- prompt_user(who, state)
+        display(state)
+        winner <- check_winner(state)
+        if(winner == TRUE){
+          break
+        }
+        state <- computer_turn(state)
+        cat("Computer Plays","\n")
+        display(state)
+        winner <- check_winner(state)
+      }
+    } else if(b == 2){
+      display(state)
+      while(winner == FALSE){
+        #Computer = x, Human = o
+        who <- 2
+        state <- computer_turn(state)
+        cat("Computer Plays","\n")
+        display(state)
+        winner <- check_winner(state)
+        if(winner == TRUE){
+          break
+        }
+        state <- prompt_user(who, state)
+        display(state)
+        winner <- check_winner(state)
+      }
+    } else{
+      return("Invalid Entry. Type play() to try again.")      #can try to re-loop to beginning
+    }
+  } else if(a == 2){
+    display(state)
+    while(winner == FALSE){
+      state <- prompt_user(who,state)
+      who <- turn(who)
+      display(state)
+      winner <- check_winner(state)
+    }
+  } else{
+    return("Invalid Entry. Type play() to try again.")      #can try to re-loop to beginning
+  }
+}
+
+computer_turn <- function(state){
+  pos <- 1
+  if(sum(state == "x") <= sum(state == "o")){
+    for(i in 1:length(triples)){
+      if((sum(triples[[i]] %in% which(state=="x")) == 2) & (sum(triples[[i]] %in% which(state != "x" & state != "o")) == 1)){
+        pos <- which(triples[[i]] %in% which(state != "x" & state != "o"))
+        pos <- triples[[i]][pos]
+        state[pos] <- "x"
+        return(state)
+      }
+    }
+    for(i in 1:length(triples)){
+      if((sum(triples[[i]] %in% which(state=="o")) == 2) & (sum(triples[[i]] %in% which(state != "x" & state != "o")) == 1)){
+        pos <- which(triples[[i]] %in% which(state != "x" & state != "o"))
+        pos <- triples[[i]][pos]
+        state[pos] <- "x"
+        return(state)
+      }
+    }
+    for(i in 1:9){
+      if(state[pos] != "x" & state[pos] != "o"){
+        state[pos] <- "x"
+        return(state)
+      } else {
+        pos <- pos + 1
+      }
+    }
+  } else if(sum(state == "x") > sum(state == "o")){
+    for(i in 1:length(triples)){
+      if((sum(triples[[i]] %in% which(state=="o")) == 2) & (sum(triples[[i]] %in% which(state != "x" & state != "o")) == 1)){
+        pos <- which(triples[[i]] %in% which(state != "x" & state != "o"))
+        pos <- triples[[i]][pos]
+        state[pos] <- "o"
+        return(state)
+      }
+    }
+    for(i in 1:length(triples)){
+      if((sum(triples[[i]] %in% which(state=="x")) == 2) & (sum(triples[[i]] %in% which(state != "x" & state != "o")) == 1)){
+        pos <- which(triples[[i]] %in% which(state != "x" & state != "o"))
+        pos <- triples[[i]][pos]
+        state[pos] <- "o"
+        return(state)
+      }
+    }
+    for(i in 1:9){
+      if(state[pos] != "x" & state[pos] != "o"){
+        state[pos] <- "o"
+        return(state)
+      } else {
+        pos <- pos + 1
+      }
+    }
+    
+  }
+}
+
+turn <- function(who){
+  who <- who + 1
+  return(who)
+}
+
+check_winner <- function(state){
+  for(i in 1:length(triples)){
+    if(any(triples[[i]][1] == which(state == "x")) & (any(triples[[i]][2] == which(state == "x"))) &(any(triples[[i]][3] == which(state == "x")))){
+      winner <- TRUE
+      cat("x wins")
+      return(winner)
+    }
+  }
+  for(i in 1:length(triples)){
+    if(any(triples[[i]][1] == which(state == "o")) & (any(triples[[i]][2] == which(state == "o"))) &(any(triples[[i]][3] == which(state == "o")))){
+      winner <- TRUE
+      cat("o wins")
+      return(winner)
+    }
+  }
+  if ((state[1] == "x" | state[1] == "o") & (state[2] == "x" | state[2] == "o") & (state[3] == "x" | state[3] == "o") & (state[4] == "x" | state[4] == "o") & (state[5] == "x" | state[5] == "o") & (state[6] == "x" | state[6] == "o") & (state[7] == "x" | state[7] == "o") & (state[8] == "x" | state[8] == "o") & (state[9] == "x" | state[9] == "o") ){
+    winner <- TRUE
+    cat("Draw")
+    return(winner)
+  }
+  return(winner)
+}
+
+prompt_user <- function(who, state){
+  z <- FALSE
+  if((who %% 2) == 1){
+    Z <- FALSE
+    while(z == FALSE){
+      pos <- readline("x choose a place to play: ")
+      pos <- as.numeric(pos)
+      z <- invalid(state,pos)
+    }
+    state <- update(state, who, pos)
+    z <- FALSE
+    return(state)
+  } else  if((who %% 2) == 0){
+    Z <- FALSE
+    while(z == FALSE){
+      pos <- readline("o choose a place to play: ")
+      pos <- as.numeric(pos)
+      z <- invalid(state,pos)
+    }
+    state <- update(state, who, pos)
+    z <- FALSE
+    return(state)
+  }
+}
+
+invalid <- function(state,pos){
+  if (pos > 9 | pos < 1 | is.na(pos) | is.logical(pos)){
+    cat("Invalid. Try again.","\n")
+    z <- FALSE
+    return(z)
+  } else if((state[pos] == "x") | (state[pos] == "o")){
+    cat("Invalid. Try again.","\n")
+    z <- FALSE
+    return(z)
+  } else{
+    z <- TRUE
+    return(z)
+  }
+}
+
+update <- function(state, who, pos) {
+  if((who %% 2) == 1){
+    state[pos] <- "x"
+    return(state)
+  } else if((who %% 2) == 0){
+    state[pos] <- "o"
+    return(state)
+  }
+}
+
+display <- function(state){
+  cat("# ",state[1],"|",state[2],"|",state[3],"\n")
+  cat("# ---+---+---","\n")
+  cat("# ",state[4],"|",state[5],"|",state[6],"\n")
+  cat("# ---+---+---","\n")
+  cat("# ",state[7],"|",state[8],"|",state[9],"\n")
+}

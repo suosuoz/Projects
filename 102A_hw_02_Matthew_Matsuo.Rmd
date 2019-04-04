@@ -1,0 +1,226 @@
+---
+title: "Stats 102A - Homework 2"
+author: "Matthew Matsuo"
+date: "Winter 2019"
+output: html_document
+---
+
+_Modify this file with your answers and responses. Please preserve all text that is italicized._
+
+
+# Important:
+
+You will submit two files for this homework assignment.
+
+The first is the rendered HTML with answers to the questions. "102A_hw_02_first_last.html"
+
+The second will be an R script with the code to run the tic-tac-toe game. "102A_ttt_first_last.R"
+
+
+
+### Reading
+
+a. Scientific Programming and Simulation Using R (SPURS) - Chapters 3 and 5. See syllabus for link to textbook.
+b. Advanced R - Chapter 6 sections 1 through 4
+
+1. _SPURS chapter 3, section 9, exercise 1. [10pts]_
+
+```{r}
+f <- function(x){
+  if (x <= 0) {
+    -(x^3)
+  } else if (0 < x && x <= 1) {
+    x^2
+  } else {
+    sqrt(x)
+  }
+}
+```
+
+```{r, error = TRUE}
+# do not modify this code
+x_values <- seq(-2, 2, by = 0.1)
+y_values <- rep(NA, length(x_values))
+for (i in seq_along(x_values)) {
+  x <- x_values[i]
+  y_values[i] <- f(x)
+}
+
+# output
+plot(x_values, y_values, type = "l")
+
+#f will not have a derivate at x=1 because it is at an edge point and is not smooth. f will have a derivate at x=0.
+```
+
+2. _SPURS chapter 3, section 9, exercise 2, but write your solution as a function (as specified in chapter 5, section 7, exercise 2) [10pts]_
+```{r}
+h <- function(x, n){
+  c <- 0
+  sum <- 0
+  y <- 0
+  for(i in 1:(n+1)){
+    y <- x^c
+    c <- c+1
+    sum <- sum + y
+  }
+  return(sum)
+}
+```
+
+```{r, error = TRUE}
+# do not modify this code chunk
+# a few test cases
+h(1,6)
+h(2,7)
+h(3,5)
+h(10,5)
+h(100,4)
+h(20,4)
+h(-2,7)
+h(-2,6)
+```
+
+3. _SPURS chapter 3, section 9, exercise 4. [10pts]_
+
+```{r}
+h_while <- function(x, n){
+  c <- 0
+  sum <- 0
+  y <- 0
+  i <- 1
+  while(i <= n+1){
+    y <- x^c
+    c <- c+1
+    sum <- sum + y
+    i <- i +1
+  }
+  return(sum)
+}
+```
+
+```{r, error = TRUE}
+# do not modify this code chunk
+# a few test cases
+h_while(1,6)
+h_while(2,7)
+h_while(3,5)
+h_while(10,5)
+h_while(100,4)
+h_while(20,4)
+h_while(-2,7)
+h_while(-2,6)
+```
+
+
+
+```{r}
+h_vector <- function(x, n){
+  sum(x^(0:n))
+}
+```
+
+```{r, error = TRUE}
+# do not modify this code chunk
+# a few test cases
+h_vector(1,6)
+h_vector(2,7)
+h_vector(3,5)
+h_vector(10,5)
+h_vector(100,4)
+h_vector(20,4)
+h_vector(-2,7)
+h_vector(-2,6)
+```
+
+4. _SPURS chapter 3, section 9, exercise 10. [10pts]_
+
+```{r}
+my_min <- function(x){
+  x.min <- x[1]
+  for(i in 1:length(x)){
+    if(x[i] < x.min){
+      x.min <- x[i]
+    }
+  }
+  return(x.min)
+}
+```
+
+```{r, error = TRUE}
+# do not modify this code chunk
+# a few test cases
+my_min(c(5,4,7,5,3,2))
+my_min(-c(5,4,7,5,3,2))
+```
+
+
+
+5. _SPURS chapter 5, section 7, exercise 3, parts a, b, and c. [10pts]_
+
+```{r, error = TRUE}
+# write your answer here. I've written a little bit of code to get you started.
+# part a
+chevalier <- function(){
+  result <- vector("numeric",4)
+  for(i in 1:4){
+    a <- sample(1:6,size=1)
+    result[i] <- a
+  }
+  if(any(result == 6)){
+    return("Win!")
+  } else{
+    return("Lose")
+  }
+}
+  
+# part b
+sixes <- function(n=4){
+  result <- vector("numeric",n)
+  for(i in 1:n){
+    a <- sample(1:6,size=1)
+    result[i] <- a
+  }
+  return(any(result == 6))
+}  
+  
+
+# part c
+sixes_rep <- function(n=4, r){
+  result <- vector("numeric",n)
+  result2 <- vector("logical")
+  for(i in 1:r){
+    for(j in 1:n){
+      a <- sample(1:6,size=1)
+      result[j] <- a
+    }
+    result2[[i]] <- any(result == 6)
+    result <- result[-1:-r]
+  }
+  obs <- mean(result2)
+  theor <- 1 - ((5/6)^n)
+  difference <- obs-theor
+  # the function should print:
+  cat("Theoretical prob of at least one six in", n, "dice is:", theor, "\n")
+  cat("Empirical prob of at least one six after", r,"replications is:", obs, "\n")
+  cat("The difference is", difference ,"\n")
+}
+
+# Sample output:
+# Theoretical prob of at least one six in 4 dice is: 0.5177469 
+# Empirical prob of at least one six after 10000 replications is: 0.5175 
+# the difference is -0.0002469136 
+```
+
+```{r, error = TRUE}
+# do not modify this code chunk
+# a few test cases to see if your code works
+set.seed(1)
+sixes_rep(4, 100)
+sixes_rep(4, 100)
+sixes_rep(4, 1000)
+sixes_rep(4, 1000)
+sixes_rep(4, 1000)
+sixes_rep(4, 10000)
+sixes_rep(4, 10000)
+sixes_rep(4, 10000)
+```
