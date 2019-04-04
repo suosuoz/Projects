@@ -5,24 +5,6 @@ date: "Winter 2019"
 output: html_document
 ---
 
-_Modify this file with your answers and responses. Please preserve all text that is italicized._
-
-
-# Important:
-
-You will submit two files for this homework assignment.
-
-The first is the rendered HTML with answers to the questions. "102A_hw_02_first_last.html"
-
-The second will be an R script with the code to run the tic-tac-toe game. "102A_ttt_first_last.R"
-
-
-
-### Reading
-
-a. Scientific Programming and Simulation Using R (SPURS) - Chapters 3 and 5. See syllabus for link to textbook.
-b. Advanced R - Chapter 6 sections 1 through 4
-
 1. _SPURS chapter 3, section 9, exercise 1. [10pts]_
 
 ```{r}
