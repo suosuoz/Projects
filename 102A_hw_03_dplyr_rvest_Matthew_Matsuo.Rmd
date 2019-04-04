@@ -1,0 +1,370 @@
+---
+title: "Stats 102A - Homework 3"
+author: "Matthew Matsuo"
+date: "Winter 2019"
+output: html_document
+---
+
+Modify this file with your answers and responses.
+
+### Reading:
+
+a. Introduction to dplyr vignette: https://cran.r-project.org/web/packages/dplyr/vignettes/dplyr.html
+b. How dplyr replaced my most common R idioms: http://www.onthelambda.com/2014/02/10/how-dplyr-replaced-my-most-common-r-idioms/
+c. regular expressions tutorial http://regexone.com/
+
+## 1. __Object Oriented Programming for tic-tac-toe__
+
+We revisit the tic-tac-toe problem. 
+
+In the last homework assignment, you had to call `display(state)` to get the board to display. We can take advantage of R's S3 object oriented system by creating a class of object, 'ttt', and creating a `print.ttt()` method.
+
+You first want to create a constructor function `ttt()` that will take an optional character vector, and give it the class attribute 'ttt.'
+
+Then you will want to create a `print.ttt()` method that will display the board as a tic-tac-toe board:
+
+```c
+> print(case1)
+1 | 2 | 3
+---------
+4 | 5 | 6
+---------
+7 | 8 | 9
+```
+
+Then, if player "x" were to go in the middle of the board, we replace the "5" with "x". 
+
+```{r exc1samp, error = TRUE}
+state <- rep(NA_character_, 9)
+state[5] <- "x"
+```
+
+```c
+> state
+1 | 2 | 3
+---------
+4 | x | 6
+---------
+7 | 8 | 9
+```
+
+In the space below, create two functions. One will be a constructor function called `ttt()` that will create an object of class 'ttt'. Function `ttt()` will accept an optional argument: a character vector of length 9 much like the above listed `state` object. If it is not given any vector, then it will create a new blank state.
+
+The second function will be a `print()` method that is specific to objects of class `ttt` that will print the state into a form that looks like the tic-tac-toe gameboard as described above.
+
+```{r exc1, error = TRUE}
+ttt <- function(x){
+  if (missing(x)){
+    case <- as.character(1:9)
+    structure(matrix(case),class="ttt")
+  } else{  
+    structure(matrix(x),class= "ttt")
+  }
+}
+  
+print.ttt <- function(states){
+  cat(c(" ##",states[1], "|" , states[2], "|", states[3], "\n","##","--+---+--", "\n", "##", states[4], "|" , states[5], "|", states[6], "\n", "##","--+---+--", "\n", "##",states[7], "|" , states[8], "|", states[9], "\n"))
+}
+
+```
+
+After you have programmed the function, the following code should work.
+
+```{r}
+# Create your empty state vector case1
+#case1 <- rep(NA_character_, 9)  
+# or if you must ...
+case1 <- as.character(1:9)
+```
+
+
+```{r esc1test, error = TRUE}
+# do not modify the following code
+case1[c(1,3)] <- "x"
+case1[2] <- "o"
+case1 <- ttt(case1)
+case1  # should print as a tic-tac-toe board
+rm(state)
+state <- ttt()
+state  # should also print as a tic-tac-toe board
+state[5] <- "o"
+state
+```
+
+
+## 2. __Basic dplyr exercises__
+
+Install the package `fueleconomy` and load the dataset `vehicles`. Answer the following questions.
+
+```{r exc2data, error = TRUE}
+# install.packages("fueleconomy")
+library(fueleconomy)
+library(dplyr)
+library(tidyr)
+data(vehicles)
+```
+
+a. How many unique vehicle makers (variable `make`) are included in the dataset? 
+
+```{r exc2a}
+vehicles %>%
+    group_by(make) %>%
+    summarise() %>%
+    select(unique.make=make) %>% 
+    count()
+```
+
+b. How many vehicles made in 2014 are represented in the dataset?
+
+```{r exc2b}
+vehicles %>% 
+    filter(year == 2014) %>% 
+    count()
+```
+
+c. For the year 2014, what was the average city mpg (gas mileage) for all compact cars? What was the average city mpg for midsize cars in 2014?
+
+```{r exc2c}
+vehicles %>% 
+    filter(year == 2014) %>% 
+    filter(class == "Compact Cars") %>% 
+    summarise(mean(cty))
+
+vehicles %>% 
+    filter(year == 2014) %>% 
+    filter(class == "Midsize Cars") %>% 
+    summarise(mean(cty))
+```
+
+d. For the year 2014, compare makers of midsize cars. Find the average city mpg of midsize cars for each manufacturer. For example, in 2014, Acura has 5 midsize cars with an average city mpg of 20.6, while Audi has 12 midsize cars with an average city mpg of 19.08. 
+
+Produce a table showing the city mpg for 2014 midsize cars for the 27 manufacturers represented in the table. Arrange the results in descending order, so that the manufacturer with the highest average mpg will be listed first.
+
+```{r exc2d}
+dd <- vehicles %>% 
+    filter(year == 2014) %>% 
+    filter(class == "Midsize Cars") %>% 
+    group_by(make)  %>% 
+    summarise(MeanCty = mean(cty)) %>% 
+    arrange(desc(MeanCty))
+dd
+```
+
+e. Finally, for the years 1994, 1999, 2004, 2009, and 2014, find the average city mpg of midsize cars for each manufacturer for each year. Use tidyr to transform the resulting output so each manufacturer has one row, and five columns (a column for each year). I have included sample output for the first two rows.
+
+```{r exc2e}
+ee <- vehicles %>% 
+    select(make,class,year,cty) %>% 
+    filter(year == 1994 |year == 1999 |year == 2004 |year == 2009 |year == 2014 ) %>% 
+    filter(class == "Midsize Cars") %>% 
+    group_by(make, year) %>% 
+    summarise(meanCTY = mean(cty)) %>%
+    spread(year, meanCTY)
+ee
+```
+
+
+
+## 3. __More advanced dplyr__
+
+I have uploaded a dataset called dr4. It contains the dates that a user visited a website. The website is able to track if the same user visited the site more than once. For the particular date range, the site had 395 visitors, and 130 of them visited more than once. Some of them (13 people) visited the site 5 times.
+
+Using dplyr, find the average time between repeated visits to the site.
+
+You will want to find the total average. 
+
+Be careful when calculating this.
+
+For example, the first user to visit the site more than once (row 2, ,YPELGRZNOQUTNPOH) visited on 6-29, 7-27, 8-3, and 8-11. The time difference for the repeated visits are: 28 days, 7 days, and 8 days, respectively, for an average of 14.33 days. 
+
+The next user with repeated visits is row 3 (SNTCUXUDIHCCSPJA). This person visited on 6-15 and 8-17, a difference of 63 days.
+
+If your dataset had only these two rows, the average time between visits would be (28 + 7 + 8 + 63) / 4 = 26.5 days. It is not ( 14.33 + 63 ) / 2 = 38.66 days.
+
+When I first attempted this, I used `filter(), mutate(), rowwise(), ungroup()`, and `summarise()`. Upon further review, I realized that it is entirely possible to complete this task using only `filter()` and `mutate()` commands. I do not care what combination of commands you use. I do care that you get the correct final result.
+
+*Make sure your final output shows the desired average number of days between visits.*
+
+```{r exc3}
+setwd("C:/Users/Matt Matsuo/Google Drive/a Stat 102a/HW 3")
+load("dr4.Rdata")
+
+x <- dr4 %>% 
+  filter(is.na(visit2) == FALSE) %>% 
+  mutate(a = visit2 - visit1) %>% 
+  mutate(b = visit3 - visit2) %>% 
+  mutate(c = visit4 - visit3) %>% 
+  mutate(d = visit5 - visit4) %>% 
+  mutate(days = sum(a,b,c,d,na.rm=TRUE)) 
+
+x <- x %>% 
+  mutate(visits = (nrow(x) *4)-sum(is.na(x$a),is.na(x$b),is.na(x$c),is.na(x$d))) %>% 
+  mutate(average = sum(a,b,c,d,na.rm=TRUE)/((nrow(x) *4)-sum(is.na(x$a),is.na(x$b),is.na(x$c),is.na(x$d)))) %>% 
+  select(days,visits,average) %>% 
+  slice(1)
+x
+```
+
+
+## 4. __Scrape baseball-reference.com with rvest__
+
+You will use the package rvest to scrape data from the website baseball-reference.com.
+
+Begin at the teams page <http://www.baseball-reference.com/teams/>.
+
+For each active team (30), visit each team's page and download the "Franchise History" table. The node you will want to use is "#franchise_years". Combine all the tables in one. Note that some franchises have names and locations. To keep track of the team, add a column to the dataframe called "current" which will contain the current name of the team. (e.g. In the 'current' column, the row for 1965 Milwaukee Braves will contain the value 'Atlanta Braves')
+
+__Hint:__ When I ran my code, my table had 2654 rows and 22 columns.
+
+__Hint:__ _I used the function `html_table()` to extract the table from each team's page._
+
+__Important:__ _It is bad manners to repeatedly hit a site with http requests, and could cause your IP to become banned. While you are testing out your code, be sure to test with only two or three teams at a time. Once you get your code running, then you may expand your code to download data for all 30 teams._
+
+```{r exc4, error = TRUE, message = FALSE}
+library(rvest)
+library(dplyr)
+library(data.table)
+
+site <- read_html("http://www.baseball-reference.com/teams/")
+
+teams <- site %>% 
+  html_nodes("#teams_active .left a") %>% 
+  html_text() 
+teams
+
+p <- html_session("http://www.baseball-reference.com/teams/")
+
+team_list <- list()
+
+for(player in teams[1:30]){
+  teamtable <- p %>% follow_link(player) %>% read_html()
+  
+  team_list[player] <-  teamtable %>% html_nodes("#franchise_years") %>% html_table()
+}
+
+for(i in 1:length(team_list)){
+  team_list[[i]]$current <- team_list[[i]][2,2]
+}
+
+as.matrix(team_list)
+rbindlist(team_list)
+baseball <- do.call(rbind,team_list)
+
+dim(baseball)
+head(baseball)
+```
+
+__Some light text clean up__
+
+Unfortunately the baseball-reference site makes use the of the non-breaking space character and uses it in places like the space in "Atlanta Braves."
+
+I've written some commands for you that will replace all instances of the non-breaking space and replace it with a standard space character in the baseball table. I've done this part for you.
+
+```{r baseball_cleanup, error = TRUE}
+# you should not need to modify this code, but you will probably need to run it.
+library(stringr)
+# This code checks to see if text in table has regular space character
+# Because the text from the web uses a non-breaking space, we expect there to be a mismatch
+# I'm converting to raw because when displayed on screen, we cannot see the difference between
+# a regular breaking space and a non-breaking space.
+all.equal(charToRaw(baseball$Tm[1]), charToRaw("Arizona Diamondbacks"))
+
+# identify which columns are character columns
+char_cols <- which(lapply(baseball, typeof) == "character")
+
+# for each character column, convert to UTF-8
+# then replace the non-breaking space with a regular space
+for(i in char_cols){
+    baseball[[i]] <- str_conv(baseball[[i]], "UTF-8")
+    baseball[[i]] <- str_replace_all(baseball[[i]],"\\s"," ")
+    # baseball[[i]] <- str_replace_all(baseball[[i]],"[:space:]"," ")  # you might have to use this depending on your operating system and which meta characters it recognizes
+}
+
+# check to see if the conversion worked
+## should now be TRUE
+all.equal(charToRaw(baseball$Tm[1]), charToRaw("Arizona Diamondbacks"))
+```
+
+## 5. __Using dplyr to summarize data__
+
+Once you have created your table, use the data it contains to calculate some summary statistics.
+
+For each franchise, filter the dataset to only include data from the years 2001 to 2018 (inclusive). If the franchise changed team names during this period, include the previous team's data as well. (e.g. the data for the Washington Nationals will also include data for the 2001-2004 Montreal Expos)
+
+Then calculate the following summary statistics for each team across the 16 seasons:
+
++ _for the years 2001-2018_
++ _total wins (TW)_
++ _total losses (TL)_
++ _total runs scored (TR)_
++ _total runs allowed (TRA)_
++ _total win percentage (wins / (wins + losses))_
+
+Sort the resulting table (should have a total of 30 rows) by total win percentage. To make sure all 30 rows print, you may need to use `print.data.frame()`, rather than the normal `print()`, which will use the method for tbl.
+
+_Hint:_ At the top of my table, I had the NY Yankees, with a total win percentage of 0.5822176
+
+```{r exc5}
+baseball2 <- baseball %>% 
+  filter(Year >= 2001 & Year <= 2018)
+
+baseball3 <- baseball2 %>% 
+  group_by(current) %>% 
+  mutate(TW = sum(W)) %>% 
+  mutate(TL = sum(L)) %>% 
+  mutate(TR = sum(R)) %>% 
+  mutate(TRA = sum(RA)) %>% 
+  mutate(TWP = sum(W)/(sum(W)+sum(L))) %>% 
+  select(current,TW,TL,TR,TRA,TWP) %>% 
+  distinct(current, .keep_all = FALSE,TW,TL,TR,TRA,TWP) %>% 
+  arrange(desc(TWP))
+print.data.frame(baseball3)
+```
+
+## 6. __Regular expressions to extract values in the Managers Column__
+
+Using regular expressions, extract the wins and losses for the managers listed in the managers column. Do not use each season's number of wins or losses. You must extract the information from the managers column using regular expressions. That column has the information written in the form "F.LastName (82-80)". You will need to use capture groups in your regular expression to separate the different pieces of information.
+
+Be careful as some of the rows contain information for more than one manager. Combine all of the manager information to get a total wins and loss value for each of the managers. Many managers have managed more than one team. Be sure to combine all of the win-loss information for the same manager. You may assume that entries that share the same first initial and last name are the same person.
+
+Create a summary table with one line for each manager. The table should contain the following columns, and should be sorted descending by total number of games.
+
++ _Manager's name (First initial and Last Name)_
++ _Total number of games managed_
++ _Total number of wins across career_
++ _Total number of losses across career_
++ _Total win percentage_
+
+You can independently verify if your information is correct on baseball-reference.com. Each manager has his own page with a total count of wins and losses.
+
+Figuring out the regular expression here is probably the trickiest part. There is also an instance where there are two different people with the same first initial and the same last name. Unfortunately, their information will end up being combined. For this homework assignment, that's okay.
+
+Regarding the regular expression, you will need to use capture groups, and thus `str_match_all()`. We use the _all variant because some of the entries will have multiple managers.
+
+The first line of my table reads: C.Mack, 7679, 3731, 3948, 0.4858706, for manager, games, wins, losses, win percentage.
+
+Watch out for T.La Russa who has a space in his name. He managed the second most number of games with a final record of 2728-2365.
+
+```{r exc6}
+managers <- str_match_all(baseball$Managers, "([A-Z]\\.[a-zA-Z]+(\\s?)([a-zA-Z]+)?) \\(([0-9]+)-([0-9]+)\\)"              )
+
+managers2 <- do.call(rbind,managers)
+managers3 <- data.frame(managers2)
+
+colnames(managers3) <- c("manager2","manager","a","b","W","L")
+managers3$W <- as.numeric(as.character(managers3$W))
+managers3$L <- as.numeric(as.character(managers3$L))
+
+managers3 <- managers3 %>% 
+  group_by(manager) %>% 
+  mutate(games = (sum(W)+sum(L))) %>% 
+  mutate(Wins  = sum(W)) %>% 
+  mutate(Losses = sum(L))
+managers3 <- managers3 %>% 
+  mutate(wpct = Wins/games) %>% 
+  select(manager, games, Wins, Losses, wpct) %>% 
+  distinct(manager, .keep_all = FALSE,games,Wins,Losses,wpct) %>% 
+  arrange(desc(games))
+
+head(managers3,10)
+```
