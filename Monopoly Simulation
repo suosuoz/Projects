@@ -1,65 +1,63 @@
 ---
-title: "Monopoly"
+title: "HW 4"
 author: "Matthew Matsuo"
 date: ""
 output: html_document
 ---
 
-
-```{r, error = TRUE}
+```{r}
 gameboard <- data.frame(space = 1:40, title = c("Go" , "Mediterranean Avenue" , "Community Chest" , "Baltic Avenue" , "Income Tax" , "Reading Railroad" , "Oriental Avenue" , "Chance" , "Vermont Avenue" , "Connecticut Avenue" , "Jail" , "St. Charles Place" , "Electric Company" , "States Avenue" , "Virginia Avenue" , "Pennsylvania Railroad" , "St. James Place" , "Community Chest" , "Tennessee Avenue" , "New York Avenue" , "Free Parking" , "Kentucky Avenue" , "Chance" , "Indiana Avenue" , "Illinois Avenue" , "B & O Railroad" , "Atlantic Avenue" , "Ventnor Avenue" , "Water Works" , "Marvin Gardens" , "Go to jail" , "Pacific Avenue" , "North Carolina Avenue" , "Community Chest" , "Pennsylvania Avenue" , "Short Line Railroad" , "Chance" , "Park Place" , "Luxury Tax" , "Boardwalk"), stringsAsFactors = FALSE)
 chancedeck <- data.frame(index = 1:15, card = c("Advance to Go" , "Advance to Illinois Ave." , "Advance to St. Charles Place" , "Advance token to nearest Utility" , "Advance token to the nearest Railroad" , "Take a ride on the Reading Railroad" , "Take a walk on the Boardwalk" , "Go to Jail" , "Go Back 3 Spaces" , "Bank pays you dividend of $50" , "Get out of Jail Free" , "Make general repairs on all your property" , "Pay poor tax of $15" , "You have been elected Chairman of the Board" , "Your building loan matures"), stringsAsFactors = FALSE)
 communitydeck <- data.frame(index = 1:16, card = c("Advance to Go" , "Go to Jail" , "Bank error in your favor. Collect $200" , "Doctor's fees Pay $50" , "From sale of stock you get $45" , "Get Out of Jail Free" , "Grand Opera Night Opening" , "Xmas Fund matures" , "Income tax refund" , "Life insurance matures. Collect $100" , "Pay hospital fees of $100" , "Pay school tax of $150" , "Receive for services $25" , "You are assessed for street repairs" , "You have won second prize in a beauty contest" , "You inherit $100"), stringsAsFactors = FALSE)
 
-### To get you started, here is a simple function to roll two dice.
-
-# Dice --------------------------------------------------------------------
 
 random_dice <- function(verbose=FALSE){
   faces <- sample(1:6, 2, replace=TRUE)
-  if(faces[1] == faces[2]) doubles = TRUE
-  else doubles = FALSE
+  
+  if(faces[1] == faces[2]){
+    doubles = TRUE
+  } else{
+    doubles = FALSE
+  }
+  
   movement = sum(faces)
   if(verbose) cat("Rolled:", faces[1], faces[2], "\n")
   return(list(faces=faces, doubles=doubles, movement=movement))
 }
 
-# Manual Dice -------------------------------------------------------------
-
-# this Reference Class allows you to create a set of manual dice
 manual_dice = setRefClass("manual_dice", 
-                   fields = list(
-                     rolls = "numeric",
-                     pos = "numeric",
-                     verbose = "logical"
-                   ), 
-                   methods = list(
-                     roll = function() {
-                       faces = rolls[pos + seq_len(2)]
-                       pos <<- pos + 2
-                       if(faces[1] == faces[2]) doubles = TRUE
-                       else doubles = FALSE
-                       movement = sum(faces)
-                       if(verbose) cat("Rolled:", faces[1], faces[2], "\n")
-                       return(list(faces=faces, doubles=doubles, movement=movement))
-                     }
-                   )
+                          fields = list(
+                            rolls = "numeric",
+                            pos = "numeric",
+                            verbose = "logical"
+                          ), 
+                          methods = list(
+                            roll = function() {
+                              faces = rolls[pos + seq_len(2)]
+                              pos <<- pos + 2
+                              
+                              if(faces[1] == faces[2]){
+                                doubles = TRUE
+                              } else{
+                                doubles = FALSE
+                              }
+                              
+                              movement = sum(faces)
+                              if(verbose) cat("Rolled:", faces[1], faces[2], "\n")
+                              return(list(faces=faces, doubles=doubles, movement=movement))
+                            }
+                          )
 )
 
 # preset_rolls is an instance of the manual_dice reference class
 preset_rolls <- manual_dice$new(rolls = c(6,4, 5,3, 3,5, 6,2, 5,4, 4,1, 2,6, 4,4, 4,4, 2,2, 
-           4,3, 4,4, 1,4, 3,4, 1,2, 3,6, 5,4, 5,5, 1,2, 5,4, 3,3, 1,1, 2,1, 1,3),
-            pos = 0, verbose = TRUE)
+                                          4,3, 4,4, 1,4, 3,4, 1,2, 3,6, 5,4, 5,5, 1,2, 5,4, 3,3, 1,1, 2,1, 1,3),
+                                pos = 0, verbose = TRUE)
 # preset_dice is a function that simply calls the roll() method from this preset_rolls object
 preset_dice <- function() preset_rolls$roll()
 
-# I highly recommend the use of a reference class to keep track of each player. 
-# I've created a *very basic* reference class with a pair of methods to get you started. 
-# This starting reference class has only one field in it and only two methods 
-# You'll definitely want to add more fields and methods, but I'll let you figure out and decide what those are.
 
 
-# Player Reference Class --------------------------------------------------
 player <- setRefClass("player", 
                       fields = list(
                         pos = "numeric",
@@ -219,11 +217,6 @@ player <- setRefClass("player",
 player1 <- player$new(pos = 1, verbose = TRUE, injail=FALSE)
 player2 <- player$new(pos = 1, verbose = TRUE, injail=FALSE)
 
-
-# Space Tracking Reference Class ------------------------------------------
-
-# a reference class to keep track of where people landed
-# I didn't need to make any modifications to this for my final code
 tracking <- setRefClass("tracking",
                         fields = list(
                           tally = "numeric",
@@ -236,13 +229,6 @@ tracking <- setRefClass("tracking",
                           }
                         )
 )
-
-# Taking a turn -----------------------------------------------------------
-
-# take_turn accepts a player object and a tracking object.
-# The take_turn code executes methods in the player object that will 
-# alter variables in the player object
-# take_turn also executes methods in the tracking object that modifies its values
 
 taketurn <- function(player, tracking, roll){
   if(player$injail == TRUE){
@@ -439,43 +425,25 @@ taketurn <- function(player, tracking, roll){
   }
 }
 
-# testing one turn --------------------------------------------------------
-
-set.seed(1)
-
-space_tracking <- tracking$new(tally = rep(0,40), verbose = TRUE)
-
-dice <- function() random_dice(verbose = TRUE)  # we alias random_dice(verbose = TRUE) to dice()
-# because the take_turn() function gets its dice rolls by calling dice()
-
-taketurn(player1, space_tracking)  # roll a 2,3 the player is now on space 6
-taketurn(player2, space_tracking)  # roll a 4,6 the player is now on space 11
-
-# check to verify
-space_tracking$tally  ## tallys have been updated to show that spot 6 and spot 11 have been landed on 1 time each
-player1  # shows that player 1 is on spot 6
-player2  # shows that player 2 is on spot 11
 
 
+#issue with manual dice
+#dice <- function() preset_dice()  # we alias preset_dice to dice()
 
-# Part 1: 20 turns of the Manual Dice -----------------------------------------------
 
-dice <- function() preset_dice()  # we alias preset_dice to dice()
-# by renaming dice(), we can use the same take_turn function we created and use a
-# different method for generating dice rolls
-
-set.seed(10)
-space_tracking <- tracking$new(tally = rep(0,40), verbose = TRUE)  # new blank tracking object
-player1 <- player$new(pos = 1, verbose = TRUE)  # new player set to verbose
-for(i in 1:20){ # 20 turns
-  cat("\n## Turn", i,"\n")
-  taketurn(player1, space_tracking)
-}
+#set.seed(10)
+#space_tracking <- tracking$new(tally = rep(0,40), verbose = TRUE)  # new blank tracking object
+#player1 <- player$new(pos = 1, verbose = TRUE, injail=FALSE)
+#for(i in 1:20){ # 20 turns
+#  cat("\n## Turn", i,"\n")
+#  taketurn(player1, space_tracking, roll)
+#}
 
 
 
 
-# Part 2: Running a simulation of 1000 games -----------------------------------------
+
+
 
 set.seed(1)
 
@@ -485,15 +453,15 @@ space_tracking <- tracking$new(tally = rep(0,40), verbose = FALSE)   # new blank
 
 start_time <- Sys.time()
 
-for(i in 1:1000){ # simulate 1000 games
+for(i in 1:10000){ # simulate 10000 games
   if(i %% 100 == 0) cat("#### NEW GAME",i,"##### \n")
-  player1 <- player$new(pos = 1, verbose = FALSE)  # new players for each game
-  player2 <- player$new(pos = 1, verbose = FALSE)
+  player1 <- player$new(pos = 1, verbose = FALSE, injail=FALSE)  # new players for each game
+  player2 <- player$new(pos = 1, verbose = FALSE, injail=FALSE)
   for(i in 1:150){ # 150 turns for each game
     if(player1$verbose) cat("Player 1 turn\n")
-    taketurn(player1, space_tracking)  
+    taketurn(player1, space_tracking, roll)
     if(player2$verbose) cat("Player 2 turn\n")
-    taketurn(player2, space_tracking)  
+    taketurn(player2, space_tracking, roll)
   }
 }
 
@@ -501,7 +469,7 @@ end_time <- Sys.time()
 
 # the results after 1000 turns. No rules have been implemented yet. Takes about 34 seconds on my computer
 # after implementing all the rules, it takes about 1 min 40 seconds to run
-time_dif = end_time - start_time  
+time_dif = end_time - start_time
 cat('Simulation time: ', time_dif)
 
 results <- cbind(gameboard, tally = space_tracking$tally)
