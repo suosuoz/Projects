@@ -1,0 +1,463 @@
+---
+title: "LoL Data Analysis"
+author: "Matthew Matsuo"
+date: "4/9/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introductory Analysis to My LoL Data
+
+```{r, echo=FALSE, message=FALSE, error=FALSE, warning=FALSE}
+setwd("C:/Users/Matt Matsuo/Google Drive/Coding/LoL")
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+
+#Import Data from 2018, 2019, and 2020
+dat18 <- readxl::read_xlsx("lol18.xlsx")
+colnames(dat18)[22] <- "Win1"
+colnames(dat18)[23] <- "Loss1"
+
+dat19 <- readxl::read_xlsx("lol19.xlsx")
+colnames(dat19)[24] <- "Win1"
+colnames(dat19)[25] <- "Loss1"
+
+dat20 <- readxl::read_xlsx("lol20.xlsx")
+dat20 <- dat20[1:58,]
+colnames(dat20)[25] <- "Win1"
+colnames(dat20)[26] <- "Loss1"
+
+
+
+#Consolidate Partner names in each dataset
+for(i in 1:nrow(dat18)){
+  if(dat18$Partner[i] == "clap them cheeks"){
+    dat18$Partner[i] = "Vik"
+  }
+  if(dat18$Partner[i] == "Monoploxy"){
+    dat18$Partner[i] = "Vik"
+  }
+  if(dat18$Partner[i] == "dripking ruth"){
+    dat18$Partner[i] = "Vik"
+  }
+  if(dat18$Partner[i] == "na"){
+    dat18$Partner[i] = NA
+  }
+}
+
+for(j in 1:nrow(dat19)){
+  if(dat19$Partner[j] == "ruth" && !is.na(dat19$Partner[j])){
+    dat19$Partner[j] = "Vik"
+  }
+  if(dat19$Partner[j] == "Feline" && !is.na(dat19$Partner[j])){
+    dat19$Partner[j] = "Vik"
+  }
+}
+```
+
+
+## Solo vs Duo Queue
+Let's first take a look at how my winrates differ between playing Duo with a friend versus Solo alone.
+
+```{r}
+#Display winrates by Partner and over all 3 years
+#2018
+two <- dat18 %>%
+  group_by(Partner) %>%
+  count("Wins" = sum(Win1), "Losses" = sum(Loss1))
+t18 <- two %>%
+  mutate("WinPct" = Wins/(Wins + Losses), 
+         "Year" = 2018)
+
+#2019
+two2 <- dat19 %>%
+  group_by(Partner) %>%
+  count("Wins" = sum(Win1), "Losses" = sum(Loss1))
+t19 <- two2 %>%
+  mutate("WinPct" = Wins/(Wins + Losses),
+         "Year" = 2019)
+
+#2020
+two3 <- dat20 %>%
+  group_by(Partner) %>%
+  count("Wins" = sum(Win1), "Losses" = sum(Loss1))
+t20 <- two3 %>%
+  mutate("WinPct" = Wins/(Wins + Losses),
+         "Year" = 2020)
+
+t18
+t19
+t20
+```
+
+The three previous tables show my winrates from 2018, 2019, and 2020 respectively. In 2018, I had an incredible winrate with Vik and also played well Solo (Partner == NA). 2019 displayed similar winrates, though, my winrate with Yondai went down dramatically. So far in 2020, my winrate with Vik has flipped and is very low compared to previous years. My Solo rate is still high though.  
+<br>  
+<br>    
+
+
+```{r}
+#Combined
+dat <- rbind(t18,t19,t20)
+dat <- tibble(dat)
+x <- dat %>%
+  group_by(Partner) %>%
+  count("Wins" = sum(Wins), "Losses" = sum(Losses))
+x <- x %>%
+  mutate("WinPct" = Wins / (Wins + Losses))
+x
+```
+
+Overall, my winrate in SoloQ is higher than the average of 50%. My winrate with Vik and Chanteon are also greater than 50% while it is worse with Setsuji and Yondai.
+<br>
+<br>
+
+```{r}
+#Plot Winrates by Partner
+ddd <- data.frame(dat)
+
+ggplot(data=ddd, aes(x=Partner, y=WinPct, fill=factor(Year))) +
+  geom_bar(stat="identity", position=position_dodge()) +
+  geom_text(aes(label=n), vjust=-.5, color="black", size=3.5, position = position_dodge(0.9))+
+  scale_fill_brewer(palette = "Set1") +
+  scale_y_continuous(limits = c(0:1), breaks = seq(0,1,.1)) +
+  geom_hline(yintercept = .5, linetype = "dashed", color = "red") +
+  theme_bw() +
+  ggtitle("Winrates by Duo Parter") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+My winrates with Chanteon and Solo (NA) are the only ones that are at or above 50% for all three years.
+<br>
+<br>
+
+## Winrates by Month
+Now, let's investigate if the time of the year has any impact on my winrates.
+
+```{r}
+#2018
+bymonth18 <- dat18 %>% 
+  group_by(Month) %>% 
+  summarise(KDA=sum(Kills + Assists)/sum(Deaths), Wins=sum(Win1),WinPct=sum(Win1)/n(),n=n()) %>%
+  mutate(Year = 2018) %>% 
+  arrange(desc(WinPct)) 
+
+#2019
+bymonth19 <- dat19 %>% 
+  group_by(Month) %>% 
+  summarise(KDA=sum(Kills + Assists)/sum(Deaths), Wins=sum(Win1),WinPct=sum(Win1)/n(),n=n()) %>%
+  mutate(Year = 2019) %>% 
+  arrange(desc(WinPct)) 
+
+#2020
+bymonth20 <- dat20 %>% 
+  group_by(Month) %>% 
+  summarise(KDA=sum(Kills + Assists)/sum(Deaths), Wins=sum(Win1),WinPct=sum(Win1)/n(),n=n()) %>% 
+  mutate(Year = 2020) %>% 
+  arrange(desc(WinPct))
+bymonth18
+bymonth19
+bymonth20
+```
+
+<br>
+<br>
+
+```{r}
+#Combined
+dat_month <- rbind(bymonth18, bymonth19, bymonth20)
+dat_month <- tibble(dat_month)
+x2 <- dat_month %>%
+  mutate("Losses" = n - Wins)
+x2 <- x2 %>%
+  group_by(Month) %>%
+  summarise(Wins=sum(Wins), Losses=sum(Losses))
+x2 <- x2 %>%
+  mutate("WinPct" = Wins / (Wins + Losses))
+x2
+
+#Plot Winrates by Month
+ddd2 <- data.frame(dat_month)
+ddd2$Month <- factor(ddd2$Month,levels = c("January", "February", "March", "April","May","June","July","August","September","October","November"))
+overallwinrate <- sum(ddd$Wins)/sum(ddd$n)
+
+ggplot(data=ddd2, aes(x=Month, y=WinPct, fill=factor(Year))) +
+  geom_bar(stat="identity", position=position_dodge()) +
+  geom_text(aes(label=n), vjust=-.5, color="black", size=3.5, position = position_dodge(0.9))+
+  scale_fill_brewer(palette = "Set1") +
+  scale_y_continuous(limits = c(0:1), breaks = seq(0,1,.1)) +
+  geom_hline(yintercept = .5, linetype = "dashed", color = "red") +
+  geom_hline(yintercept = overallwinrate, linetype = "dashed", color = "orange") +
+  theme_bw() +
+  ggtitle("Winrates by Month") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+Historically, April and May have been good months fror my winrates. I also seem to play well later on in the year, though the number of games played are also on the lower end.
+<br>
+<br>
+
+```{r}
+#How Often Do I Get My Main Role
+#2018
+a1 <- length(which(dat18$Primary == dat18$Role))
+b1 <- length(which(dat18$Secondary == dat18$Role))
+a1 / nrow(dat18)
+b1 / nrow(dat18)
+```
+For the most part, I get my Primary role.
+<br>
+<br>
+
+```{r}
+#What Is My Winrate By Role
+#2018
+#Primary
+a2 <- which(dat18$Role == dat18$Primary)
+mean(dat18[a2,]$Win1)
+
+#Secondary
+b2 <- which(dat18$Role == dat18$Secondary)
+mean(dat18[b2,]$Win1)
+
+#Jungle
+jg <- which(dat18$Role == "JNG")
+mean(dat18[jg,]$Win1)
+
+#Support
+sup <- which(dat18$Role == "SUP")
+mean(dat18[sup,]$Win1)
+
+#ADC
+adc <- which(dat18$Role == "ADC")
+mean(dat18[adc,]$Win1)
+```
+In 2018, my winrate on my Secondary role was an incredible 75%, however on a much smaller sample size. I also played better as a Jungler compared to Support. As ADC, I won every game but only played a few on that position.
+<br>
+<br>
+
+```{r}
+#2019
+#Primary
+a22 <- which(dat19$Role == dat19$Primary)
+mean(dat19[a22,]$Win1)
+
+#Secondary
+b22 <- which(dat19$Role == dat19$Secondary)
+mean(dat19[b22,]$Win1)
+
+#Jungle
+jg2 <- which(dat19$Role == "JNG")
+mean(dat19[jg2,]$Win1)
+
+#Support
+sup2 <- which(dat19$Role == "SUP")
+mean(dat19[sup2,]$Win1)
+
+#ADC
+adc2 <- which(dat19$Role == "ADC")
+mean(dat19[adc2,]$Win1)
+
+#MID
+mid2 <- which(dat19$Role == "MID")
+mean(dat19[mid2,]$Win1)
+```
+2019 was the opposite from 2018 as I won more games as Support and had a below 50% winrate as a Jungler.
+<br>
+<br>
+
+```{r}
+#2020
+#Primary
+a3 <- which(dat20$Role == dat20$Primary)
+mean(dat20[a3,]$Win1)
+
+#Secondary
+b3 <- which(dat20$Role == dat20$Second)
+mean(dat20[b3,]$Win1)
+
+#Jungle
+jg3 <- which(dat20$Role == "JNG")
+mean(dat20[jg3,]$Win1)
+
+#Support
+sup3 <- which(dat20$Role == "SUP")
+mean(dat20[sup3,]$Win1)
+```
+So far in 2020, my winrates across Primary and Secondary Role, Jungle and Support are all above the average of 50%.
+<br>
+<br>
+
+```{r}
+#Overall
+dat18_2 <- dat18 %>% 
+  select(Primary, Secondary, Role, Win1)
+dat19_2 <- dat19 %>% 
+  select(Primary, Secondary, Role, Win1)
+dat20_2 <- dat20 %>% 
+  select(Primary, Second, Role, Win1) %>% 
+  rename(Secondary = Second)
+tot <- rbind(dat18_2, dat19_2, dat20_2)
+
+#Primary
+a4 <- which(tot$Role == tot$Primary)
+mean(tot[a4,]$Win1)
+
+#Secondary
+b4 <- which(tot$Role == tot$Secondary)
+mean(tot[b4,]$Win1)
+
+#Jungle
+jg4 <- which(tot$Role == "JNG")
+mean(tot[jg4,]$Win1)
+
+#Support
+sup4 <- which(tot$Role == "SUP")
+mean(tot[sup4,]$Win1)
+
+#Mid
+mid4 <- which(tot$Role == "MID")
+mean(tot[mid4,]$Win1)
+
+#ADC
+adc4 <- which(tot$Role == "ADC")
+mean(tot[adc4,]$Win1)
+```
+Over the course of the last three years, Support has the highest winrate though the playcount is lower than Jungle.
+<br>
+<br>
+
+## Champion Analysis
+How well do I play on various champions?
+
+```{r}
+#Filter By Champion
+#2018
+mod18 <- dat18 %>% 
+  group_by(Champion) %>% 
+  summarise(KDA = round(((sum(Kills) + sum(Assists))/sum(Deaths)),3), Count = n(), WinPct = round(sum(Win1)/(sum(Win1) + sum(Loss1)),3)) %>% 
+  arrange(desc(WinPct, KDA))
+mod18
+
+#2019
+mod19 <- dat19 %>% 
+  group_by(Champion) %>% 
+  summarise(KDA = round(((sum(Kills) + sum(Assists))/sum(Deaths)),3), Count = n(), WinPct = round(sum(Win1)/(sum(Win1) + sum(Loss1)),3)) %>% 
+  arrange(desc(WinPct, KDA))
+mod19
+
+#2020
+mod20 <- dat20 %>% 
+  group_by(Champion) %>% 
+  summarise(KDA = round(((sum(Kills) + sum(Assists))/sum(Deaths)),3), Count = n(), WinPct = round(sum(Win1)/(sum(Win1) + sum(Loss1)),3)) %>% 
+  arrange(desc(WinPct, KDA))
+mod20
+```
+
+
+### Personal Performance by Champion
+Sorting Champions by the number of times I recorded each grade.
+```{r warning=FALSE, message=FALSE}
+#2018
+library(reshape2)
+m18 <- dat18 %>% 
+  select(Champion, Grade) %>% 
+  group_by(Champion) %>% 
+  mutate(Count = n()) %>% 
+  arrange(desc(Count))
+
+m18$Grade <- factor(m18$Grade,levels = c("S+","S","S-","A+","A","A-","B+","B","B-","C+","C","C-"))
+
+dcast(m18, Champion~Grade, fun.aggregate = length)
+
+
+#2019
+m19 <- dat19 %>% 
+  select(Champion, Grade) %>% 
+  group_by(Champion) %>% 
+  mutate(Count = n()) %>% 
+  arrange(desc(Count))
+
+m19$Grade <- factor(m19$Grade,levels = c("S+","S","S-","A+","A","A-","B+","B","B-","C+","C","C-"))
+
+dcast(m19, Champion~Grade, fun.aggregate = length)
+
+
+#2020
+m20 <- dat20 %>% 
+  select(Champion, Grade) %>% 
+  group_by(Champion) %>% 
+  mutate(Count = n()) %>% 
+  arrange(desc(Count))
+
+m20$Grade <- factor(m20$Grade,levels = c("S+","S","S-","A+","A","A-","B+","B","B-","C+","C","C-"))
+m20$Champion <- factor(m20$Champion, levels = c("Zac","Elise",  "Trundle" ,  "Sejuani" ,  "Nautilus","Jarvan IV", "Rek'Sai" ))
+
+dcast(m20, Champion~Grade, fun.aggregate = length)
+```
+<br>
+<br>
+Sorting Champions by the number of times I recorded each rank with 1 being the best.
+```{r}
+#Personal
+#2019
+mm19 <- dat19 %>% 
+  select(Champion, `My Rank`) %>% 
+  group_by(Champion) %>% 
+  mutate(Count = n()) %>% 
+  arrange(desc(Count))
+
+dcast(mm19, Champion~`My Rank`, fun.aggregate = length)
+
+mm19 %>% 
+  group_by(Champion) %>% 
+  summarise(AvgRank = mean(`My Rank`), Count = n()) %>% 
+  arrange(AvgRank)
+
+
+#2020
+mm20 <- dat20 %>% 
+  select(Champion, `My Rank`) %>% 
+  group_by(Champion) %>% 
+  mutate(Count = n()) %>% 
+  arrange(desc(Count))
+
+dcast(mm20, Champion~`My Rank`, fun.aggregate = length)
+
+mm20 %>% 
+  group_by(Champion) %>% 
+  summarise(AvgRank = mean(`My Rank`), Count = n()) %>% 
+  arrange(AvgRank)
+
+dat20 %>% 
+  select(Champion, `Team Rank`) %>%
+  group_by(Champion) %>% 
+  summarise(AvgTeamRank = mean(`Team Rank`), Count = n()) %>% 
+  arrange(AvgTeamRank)
+```
+
+
+```{r}
+#Plot KP vs KDA
+ggplot(data = dat20, aes(x = KDA, y = `KP%`, color=factor(Win1))) +
+  geom_point() + 
+  geom_vline(xintercept = 3, linetype = "dashed", color = "red")
+```
+<br>
+<br>
+For the most part, if I have a KDA of 3 works as a simple cluster barrier to determine if I win the game or not.
+
+<br>
+<br>
+```{r}
+#Plot OP Score vs KDA
+ggplot(data = dat20, aes(x = `OP Score`, y = `My Rank`, color=factor(Win1))) +
+  geom_point() +
+  geom_hline(yintercept = 3, linetype = "dashed", color = "red")
+```
+<br>
+<br>
+Out of the 10 people in the game, if I rank #3 or higher, I will most likely win the game.
